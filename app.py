@@ -56,7 +56,6 @@ def main():
         .story-container {
             padding: 20px;
             border-radius: 10px;
-            background-color: #f0f2f6;
             margin: 20px 0;
         }
         </style>
