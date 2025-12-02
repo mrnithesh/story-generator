@@ -18,7 +18,7 @@ def generate(theme, age_group, length, custom_prompt=""):
 
     prompt = base_prompt
 
-    model = "gemini-2.0-flash"
+    model = "gemini-flash-lite-latest"
     contents = [
         types.Content(
             role="user",
