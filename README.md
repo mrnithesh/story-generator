@@ -30,9 +30,11 @@ An interactive web application that generates customized stories using Google's 
 ## ⚙️ Configuration
 
 1. Create a `.env` file in the project root directory
-2. Add your Google Gemini API key:
+2. Add your Google Gemini API key and app login credentials:
    ```
    GEMINI_API_KEY=your_api_key_here
+   APP_USERNAME=your_username_here
+   APP_PASSWORD=your_password_here
    ```
 
 > 🔑 **Get an API Key**: Obtain your Gemini API key from the [Google AI Studio](http://aistudio.google.com/apikey/).
@@ -46,13 +48,15 @@ An interactive web application that generates customized stories using Google's 
 
 2. Open your web browser and navigate to the URL displayed in your terminal (typically http://localhost:8501)
 
-3. Configure your story settings:
+3. Sign in with the username and password you configured.
+
+4. Configure your story settings:
    - Select a theme
    - Choose an age group
    - Set the desired word count
    - Add optional custom elements
 
-4. Click "Generate Story" and enjoy your personalized story!
+5. Click "Generate Story" and enjoy your personalized story!
 
 ## 📋 Requirements
 
