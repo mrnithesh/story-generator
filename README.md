@@ -11,6 +11,8 @@ An interactive web application that generates customized stories using Google's 
 - Target specific age groups (3-6 years, 7-12 years, 13-16 years, 16+ years)
 - Add custom creative elements to personalize stories
 - Download generated stories as text files
+- Automatically save generated stories to a local SQLite database
+- View and re-download your recent story history after login
 
 ## 🛠️ Installation
 
@@ -35,7 +37,10 @@ An interactive web application that generates customized stories using Google's 
    GEMINI_API_KEY=your_api_key_here
    APP_USERNAME=your_username_here
    APP_PASSWORD=your_password_here
+   STORY_DB_PATH=stories.db
    ```
+
+`STORY_DB_PATH` is optional. If omitted, the app stores stories in `stories.db` in the project root.
 
 > 🔑 **Get an API Key**: Obtain your Gemini API key from the [Google AI Studio](http://aistudio.google.com/apikey/).
 

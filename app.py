@@ -1,11 +1,76 @@
 import hmac
 import os
+import sqlite3
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 load_dotenv()
+
+DB_PATH = os.environ.get("STORY_DB_PATH", "stories.db")
+
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS stories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                theme TEXT NOT NULL,
+                age_group TEXT NOT NULL,
+                requested_length INTEGER NOT NULL,
+                custom_prompt TEXT,
+                story TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def save_story(username, theme, age_group, length, custom_prompt, story):
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        conn.execute(
+            """
+            INSERT INTO stories (
+                username,
+                theme,
+                age_group,
+                requested_length,
+                custom_prompt,
+                story
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (username, theme, age_group, length, custom_prompt, story),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_recent_stories(username, limit=5):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            """
+            SELECT id, theme, age_group, requested_length, custom_prompt, story, created_at
+            FROM stories
+            WHERE username = ?
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (username, limit),
+        ).fetchall()
+        return rows
+    finally:
+        conn.close()
 
 
 def get_login_credentials():
@@ -102,6 +167,8 @@ def generate(theme, age_group, length, custom_prompt=""):
 
 def main():
     st.set_page_config(page_title="Story Generator", page_icon="📚", layout="wide")
+    init_db()
+
     if "authenticated" not in st.session_state:
         st.session_state["authenticated"] = False
     
@@ -174,6 +241,15 @@ def main():
                 f"""<div class="story-container">{story}</div>""", 
                 unsafe_allow_html=True
             )
+
+            save_story(
+                username=st.session_state.get("authenticated_user", "anonymous"),
+                theme=theme,
+                age_group=age_group,
+                length=length,
+                custom_prompt=custom_prompt,
+                story=story,
+            )
             
             # Add download button
             st.download_button(
@@ -182,6 +258,35 @@ def main():
                 file_name=f"{theme.lower()}_story.txt",
                 mime="text/plain"
             )
+
+    st.markdown("### 🕘 Your Recent Stories")
+    recent_stories = get_recent_stories(st.session_state.get("authenticated_user", ""), limit=5)
+
+    if not recent_stories:
+        st.info("No saved stories yet. Generate one to build your history.")
+    else:
+        for row in recent_stories:
+            header = f"{row['theme']} • {row['requested_length']} words • {row['created_at']}"
+            with st.expander(header):
+                st.write(f"**Age Group:** {row['age_group']}")
+                if row["custom_prompt"]:
+                    st.write(f"**Custom Elements:** {row['custom_prompt']}")
+
+                st.text_area(
+                    "Story",
+                    value=row["story"],
+                    height=220,
+                    key=f"story_preview_{row['id']}",
+                    disabled=True,
+                )
+
+                st.download_button(
+                    label="Download This Story",
+                    data=row["story"],
+                    file_name=f"story_{row['id']}.txt",
+                    mime="text/plain",
+                    key=f"download_story_{row['id']}",
+                )
 
 if __name__ == "__main__":
     main()
